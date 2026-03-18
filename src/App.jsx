@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import Portfolio from './Meet_portfolio'
+import { useState } from "react";
+import Portfolio from "./Meet_portfolio";
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   return (
     <>
-    <Portfolio />
+      <Portfolio />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
