@@ -349,7 +349,7 @@ export default function Portfolio() {
         id="about"
         className="grid-bg"
         style={{
-          minHeight: "80vh",
+          minHeight: "70vh",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -392,7 +392,7 @@ export default function Portfolio() {
             position: "relative",
             maxWidth: 1100,
             margin: "0 auto",
-            padding: "80px 40px",
+            padding: "40px 40px",
             width: "100%",
           }}
         >
