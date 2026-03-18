@@ -1,179 +1,343 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ─── Inject keyframes & Google Fonts ─── */
-const GlobalStyles = () => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+const style = `
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
 
-    * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #060612;
-      color: #e2e2f0;
-      overflow-x: hidden;
-    }
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --accent: #00ff88;
+    --accent2: #7b5ea7;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --border: rgba(255,255,255,0.07);
+    --glow: 0 0 30px rgba(0,255,136,0.15);
+  }
 
-    .font-display { font-family: 'Bebas Neue', sans-serif; }
-    .font-mono    { font-family: 'JetBrains Mono', monospace; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; }
 
-    /* Marquee */
-    @keyframes marquee {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    .marquee-track { animation: marquee 18s linear infinite; }
-    .marquee-track:hover { animation-play-state: paused; }
+  .portfolio {
+    min-height: 100vh;
+    background: var(--bg);
+    overflow-x: hidden;
+  }
 
-    /* Floating grid bg */
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(99,255,170,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,255,170,0.04) 1px, transparent 1px);
-      background-size: 56px 56px;
-    }
+  /* NAV */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem; color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    font-size: 0.85rem; color: var(--muted); text-decoration: none;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+  .nav-links a:hover { color: var(--accent); }
 
-    /* Glow blob */
-    @keyframes blobFloat {
-      0%,100% { transform: translate(0,0) scale(1); }
-      33%      { transform: translate(30px,-20px) scale(1.05); }
-      66%      { transform: translate(-20px,15px) scale(0.96); }
-    }
-    .blob { animation: blobFloat 12s ease-in-out infinite; }
-    .blob2 { animation: blobFloat 16s ease-in-out infinite reverse; }
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 40px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,255,136,0.08) 0%, transparent 70%);
+    top: -100px; right: -100px;
+    pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(123,94,167,0.1) 0%, transparent 70%);
+    bottom: 0; left: -100px;
+    pointer-events: none;
+  }
+  .hero-content { position: relative; max-width: 800px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    border: 1px solid rgba(0,255,136,0.3);
+    padding: 6px 14px; border-radius: 100px;
+    margin-bottom: 28px;
+    letter-spacing: 0.1em;
+  }
+  .hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .hero-name {
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+  .hero-name .first { color: var(--text); }
+  .hero-name .last {
+    display: block;
+    -webkit-text-stroke: 2px var(--accent);
+    color: transparent;
+  }
+  .hero-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem; color: var(--muted);
+    margin-bottom: 24px; letter-spacing: 0.05em;
+  }
+  .hero-desc {
+    font-size: 1.05rem; color: var(--muted); line-height: 1.7;
+    max-width: 520px; margin-bottom: 40px;
+  }
+  .hero-desc em { color: var(--accent); font-style: normal; font-weight: 600; }
+  .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent); color: #0a0a0f;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,255,136,0.3); }
+  .btn-outline {
+    padding: 14px 32px;
+    background: transparent; color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* Fade-in on scroll */
-    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
-    .reveal.show { opacity: 1; transform: translateY(0); }
+  /* SECTION */
+  .section { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800; letter-spacing: -0.02em;
+    margin-bottom: 60px;
+  }
+  .section-line {
+    display: inline-block;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 4px;
+  }
 
-    /* Card hover lift */
-    .card-lift { transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
-    .card-lift:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 60px rgba(99,255,170,0.1);
-      border-color: rgba(99,255,170,0.35) !important;
-    }
+  /* SKILLS */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
+  .skill-chip {
+    padding: 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem; color: var(--text);
+    transition: all 0.25s;
+    cursor: default;
+    position: relative; overflow: hidden;
+  }
+  .skill-chip::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,136,0.05), transparent);
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .skill-chip:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+  .skill-chip:hover::before { opacity: 1; }
+  .skill-chip .skill-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
 
-    /* Accent underline */
-    .accent-line { position:relative; display:inline-block; }
-    .accent-line::after {
-      content:'';
-      position:absolute; left:0; bottom:-4px;
-      width:100%; height:3px;
-      background: linear-gradient(90deg,#63ffaa,#7b5ea7);
-      border-radius:2px;
-    }
+  /* PROJECTS */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .project-card::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .project-card:hover { border-color: rgba(0,255,136,0.2); transform: translateY(-6px); }
+  .project-card:hover::after { transform: scaleX(1); }
+  .project-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    letter-spacing: 0.15em; margin-bottom: 16px;
+  }
+  .project-name {
+    font-size: 1.3rem; font-weight: 700; margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .project-desc {
+    font-size: 0.9rem; color: var(--muted); line-height: 1.65;
+    margin-bottom: 24px;
+  }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; padding: 4px 10px;
+    background: rgba(0,255,136,0.07);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 100px; color: var(--accent);
+  }
 
-    /* Skill chip */
-    .skill-chip {
-      transition: all .22s ease;
-      position: relative; overflow: hidden;
-    }
-    .skill-chip::before {
-      content:'';
-      position:absolute; inset:0;
-      background: linear-gradient(135deg,rgba(99,255,170,.08),transparent);
-      opacity:0; transition:opacity .22s;
-    }
-    .skill-chip:hover { transform: translateY(-4px); border-color: rgba(99,255,170,.5) !important; }
-    .skill-chip:hover::before { opacity:1; }
+  /* EDUCATION */
+  .edu-timeline { display: flex; flex-direction: column; gap: 32px; position: relative; }
+  .edu-timeline::before {
+    content: '';
+    position: absolute; left: 16px; top: 0; bottom: 0;
+    width: 1px; background: var(--border);
+  }
+  .edu-item { display: flex; gap: 32px; padding-left: 0; position: relative; }
+  .edu-dot {
+    width: 33px; height: 33px; flex-shrink: 0;
+    background: var(--card); border: 2px solid var(--accent);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; position: relative; z-index: 1;
+  }
+  .edu-body {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 28px; flex: 1;
+    transition: border-color 0.2s;
+  }
+  .edu-body:hover { border-color: rgba(0,255,136,0.25); }
+  .edu-year {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; color: var(--accent);
+    letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .edu-degree { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+  .edu-school { font-size: 0.88rem; color: var(--muted); margin-bottom: 12px; }
+  .edu-desc { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
 
-    /* Progress bar animate */
-    .bar-fill { transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+  /* CONTACT */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .contact-info { display: flex; flex-direction: column; gap: 20px; }
+  .contact-item {
+    display: flex; gap: 16px; align-items: center;
+    padding: 18px 22px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; transition: all 0.2s;
+  }
+  .contact-item:hover { border-color: rgba(0,255,136,0.25); }
+  .contact-icon { font-size: 1.2rem; }
+  .contact-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 4px; }
+  .contact-val { font-size: 0.9rem; color: var(--text); }
+  .contact-cta {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px;
+  }
+  .contact-cta h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+  .contact-cta p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 28px; }
 
-    /* Nav link */
-    .nav-link { position:relative; }
-    .nav-link::after {
-      content:''; position:absolute; left:0; bottom:-2px;
-      width:0; height:1.5px; background:#63ffaa;
-      transition:width .25s ease;
-    }
-    .nav-link:hover::after { width:100%; }
-    .nav-link:hover { color:#63ffaa !important; }
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--muted);
+  }
+  .footer-accent { color: var(--accent); }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width:5px; }
-    ::-webkit-scrollbar-track { background:#060612; }
-    ::-webkit-scrollbar-thumb { background:#63ffaa44; border-radius:4px; }
+  /* LANG */
+  .lang-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+  .lang-card {
+    flex: 1; min-width: 140px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+    text-align: center; transition: all 0.2s;
+  }
+  .lang-card:hover { border-color: rgba(0,255,136,0.25); transform: translateY(-4px); }
+  .lang-name { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .lang-level {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .lang-bar {
+    height: 3px; background: var(--border); border-radius: 2px;
+    margin-top: 12px; overflow: hidden;
+  }
+  .lang-fill { height: 100%; background: var(--accent); border-radius: 2px; }
 
-    /* Pulse dot */
-    @keyframes ping { 75%,100% { transform:scale(2); opacity:0; } }
-    .ping { animation: ping 1.4s cubic-bezier(0,0,.2,1) infinite; }
+  @media (max-width: 700px) {
+    .nav { padding: 16px 20px; }
+    .nav-links { gap: 18px; }
+    .hero { padding: 100px 20px 60px; }
+    .section { padding: 70px 20px; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
 
-    .hero-name .first { color: var(--text); }
-    .hero-name .last {
-      display: block;
-      -webkit-text-stroke: 2px var(--accent);
-      color: transparent;
-    }
-  `}</style>
-);
+  /* ANIMATIONS */
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+`;
 
-/* ─── Reveal hook ─── */
-function useReveal() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          e.target.classList.add("show");
-          obs.unobserve(e.target);
-        }
-      },
-      { threshold: 0.12 },
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  return ref;
-}
-
-function Reveal({ children, delay = 0, className = "" }) {
-  const ref = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={`reveal ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ─── DATA ─── */
 const skills = [
-  { icon: "🍃", name: "MongoDB", color: "#47A248" },
-  { icon: "⚡", name: "Express.js", color: "#ffffff" },
-  { icon: "⚛️", name: "React.js", color: "#61DAFB" },
-  { icon: "🟢", name: "Node.js", color: "#339933" },
-  { icon: "🟡", name: "JavaScript", color: "#F7DF1E" },
-  { icon: "🎨", name: "HTML & CSS", color: "#E34F26" },
-  { icon: "📦", name: "Bootstrap", color: "#7952B3" },
+  { icon: "🍃", name: "MongoDB" },
+  { icon: "⚡", name: "Express.js" },
+  { icon: "⚛️", name: "React.js" },
+  { icon: "🟢", name: "Node.js" },
+  { icon: "🟡", name: "JavaScript" },
+  { icon: "🎨", name: "HTML & CSS" },
+  { icon: "📦", name: "Bootstrap" },
 ];
 
-const softSkills = [
-  "Quick Learner",
-  "Problem Solving",
-  "Communication",
-  "Creative Thinking",
-  "Tech Explorer",
-];
+const softSkills = ["Quick Learner", "Problem Solving", "Communication", "Creative Thinking", "Tech Explorer"];
 
 const projects = [
   {
     num: "01",
-    emoji: "🤖",
     name: "AI Powered Chatbot",
-    desc: "Built an AI-powered chatbot with a clean interactive UI and real-time conversational responses. Integrated external AI APIs with seamless frontend handling.",
-    tags: ["HTML", "CSS", "JavaScript", "API"],
+    desc: "An AI-powered chatbot with a clean, interactive UI and real-time conversational responses. Features seamless API integration for intelligent replies.",
+    tags: ["HTML", "CSS", "JavaScript", "API Integration"],
   },
   {
     num: "02",
-    emoji: "🛒",
     name: "E-Commerce Platform",
-    desc: "Full MERN Stack e-commerce platform with product listing, user authentication, and cart management. End-to-end development from UI to database.",
-    tags: ["MongoDB", "Express", "React", "Node.js"],
+    desc: "A fully functional e-commerce platform built with the complete MERN Stack. Includes product listing, user authentication, and cart management.",
+    tags: ["MongoDB", "Express.js", "React.js", "Node.js"],
   },
 ];
 
@@ -181,981 +345,239 @@ const education = [
   {
     icon: "🎓",
     year: "2024 – 2027",
-    degree: "Bachelor of Computer Applications",
-    abbr: "BCA",
+    degree: "Bachelor of Computer Applications (BCA)",
     school: "Sutex Bank College, VNSGU · Surat",
-    desc: "Building a strong foundation in programming, software development, logical thinking and problem-solving for a tech career.",
+    desc: "Building a strong foundation in programming and software development. Sharpening logical thinking and problem-solving skills for a tech career.",
   },
   {
     icon: "💻",
     year: "2025 – 2026",
-    degree: "Full Stack Web Development",
-    abbr: "MERN",
+    degree: "Full Stack Web Development (MERN Stack)",
     school: "Toptel Multimedia · Surat",
-    desc: "Certified hands-on training in MongoDB, Express.js, React.js & Node.js. Real-world full-stack project development covering frontend and backend.",
+    desc: "Certified course with hands-on experience in MongoDB, Express.js, React.js and Node.js. Focused on real-world project development covering both frontend and backend.",
   },
 ];
 
 const languages = [
-  { name: "Gujarati", level: "Native", pct: 100 },
-  { name: "Hindi", level: "Fluent", pct: 85 },
-  { name: "English", level: "Basic", pct: 45 },
+  { name: "Gujarati", level: "Native", fill: "100%" },
+  { name: "Hindi", level: "Fluent", fill: "85%" },
+  { name: "English", level: "Basic", fill: "45%" },
 ];
 
-const contacts = [
-  { icon: "📞", label: "Phone", val: "+91 8488884002" },
-  { icon: "✉️", label: "Email", val: "mitgadhiya16@gmail.com" },
-  { icon: "📍", label: "Location", val: "Pasodra, Surat, Gujarat" },
-  { icon: "🌐", label: "Website", val: "reallygreatsite.com" },
-];
+function useInView(ref) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref]);
+  return visible;
+}
 
-/* ─── MARQUEE TICKER ─── */
-const marqueeItems = [
-  "✦ MERN Stack Developer",
-  "✦ Available for Internship",
-  "✦ Open to Freelance",
-  "✦ Available for Internship",
-  "✦ Let's Build Together",
-  "✦ Available for Internship",
-  "✦ React · Node · MongoDB",
-];
-
-function MarqueeBanner() {
-  const items = [...marqueeItems, ...marqueeItems];
+function FadeIn({ children, delay = 0, style: s = {} }) {
+  const ref = useRef(null);
+  const vis = useInView(ref);
   return (
-    <div
-      className="w-full overflow-hidden py-3 relative"
-      style={{
-        background: "#63ffaa",
-        borderTop: "1px solid rgba(99,255,170,0.3)",
-        borderBottom: "1px solid rgba(99,255,170,0.3)",
-      }}
-    >
-      <div
-        className="marquee-track flex whitespace-nowrap"
-        style={{ width: "max-content" }}
-      >
-        {items.map((t, i) => (
-          <span
-            key={i}
-            className="font-mono font-semibold text-sm tracking-widest uppercase px-8 select-none"
-            style={{ color: "#060612" }}
-          >
-            {t}
-          </span>
-        ))}
-      </div>
+    <div ref={ref} className={`fade-in${vis ? " visible" : ""}`}
+      style={{ transitionDelay: `${delay}ms`, ...s }}>
+      {children}
     </div>
   );
 }
 
-/* ─── MAIN ─── */
 export default function Portfolio() {
-  const [barVisible, setBarVisible] = useState(false);
-  const barRef = useRef(null);
-  const scrollTo = (id) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setBarVisible(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    if (barRef.current) obs.observe(barRef.current);
-    return () => obs.disconnect();
-  }, []);
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div
-      style={{ minHeight: "100vh", background: "#060612", color: "#e2e2f0" }}
-    >
-      <GlobalStyles />
+    <div className="portfolio">
+      <style>{style}</style>
 
-      {/* ── NAV ── */}
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 40px",
-          background: "rgba(6,6,18,0.88)",
-          backdropFilter: "blur(18px)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <span
-          className="font-mono"
-          style={{
-            color: "#63ffaa",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: "0.2em",
-          }}
-        >
-          MG.DEV
-        </span>
-        <div style={{ display: "flex", gap: 32 }}>
-          {["about", "skills", "projects", "education", "contact"].map((s) => (
-            <button
-              key={s}
-              onClick={() => scrollTo(s)}
-              className="nav-link font-mono"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "#666",
-                fontSize: 11,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                fontFamily: "'JetBrains Mono',monospace",
-              }}
-            >
-              {s}
-            </button>
+      {/* NAV */}
+      <nav className="nav">
+        <div className="nav-logo">MG.dev</div>
+        <div className="nav-links">
+          {["about", "skills", "projects", "education", "contact"].map(s => (
+            <a key={s} onClick={() => scrollTo(s)}>{s}</a>
           ))}
         </div>
-        <a
-          href="mailto:mitgadhiya16@gmail.com"
-          className="font-mono"
-          style={{
-            background: "#63ffaa",
-            color: "#060612",
-            padding: "8px 20px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            textDecoration: "none",
-          }}
-        >
-          Hire Me
-        </a>
       </nav>
 
-      {/* ── HERO ── */}
-      <section
-        id="about"
-        className="grid-bg"
-        style={{
-          minHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          position: "relative",
-          overflow: "hidden",
-          paddingTop: 80,
-        }}
-      >
-        <div
-          className="blob"
-          style={{
-            position: "absolute",
-            top: -150,
-            right: -150,
-            width: 600,
-            height: 600,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle,rgba(99,255,170,0.10) 0%,transparent 65%)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          className="blob2"
-          style={{
-            position: "absolute",
-            bottom: -100,
-            left: -100,
-            width: 400,
-            height: 400,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle,rgba(123,94,167,0.12) 0%,transparent 65%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative",
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "80px 40px",
-            width: "100%",
-          }}
-        >
-          {/* Status pill */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "rgba(99,255,170,0.07)",
-              border: "1px solid rgba(99,255,170,0.25)",
-              borderRadius: 999,
-              padding: "6px 16px",
-              marginBottom: 32,
-            }}
-          >
-            <span
-              style={{
-                position: "relative",
-                display: "inline-flex",
-                width: 8,
-                height: 8,
-              }}
-            >
-              <span
-                className="ping"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "50%",
-                  background: "#63ffaa",
-                  opacity: 0.75,
-                }}
-              />
-              <span
-                style={{
-                  position: "relative",
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "#63ffaa",
-                  display: "block",
-                }}
-              />
-            </span>
-            <span
-              className="font-mono"
-              style={{
-                color: "#63ffaa",
-                fontSize: 11,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-              }}
-            >
-              Open to Work
-            </span>
+      {/* HERO */}
+      <section className="hero" id="about">
+        <div className="hero-grid" />
+        <div className="hero-glow" />
+        <div className="hero-glow2" />
+        <div className="hero-content">
+          <div className="hero-badge">
+            <span /> Available for Internship
           </div>
-
-          <h1
-            className="hero-name"
-            style={{
-              fontSize: "clamp(4rem,12vw,9rem)",
-              lineHeight: 1,
-              letterSpacing: "-0.01em",
-              marginBottom: 16,
-            }}
-          >
-            <span className="first" style={{ color: "#e2e2f0" }}>MEET</span>
-            <br />
-            <span className="first"
-              style={{ WebkitTextStroke: "2px #63ffaa", color: "transparent" }}
-            >
-              GADHIYA
-            </span>
+          <h1 className="hero-name">
+            <span className="first">Meet</span>
+            <span className="last">Gadhiya</span>
           </h1>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              marginBottom: 24,
-            }}
-          >
-            <span
-              className="font-mono"
-              style={{ color: "#63ffaa", fontSize: 13, letterSpacing: "0.1em" }}
-            >
-              // Full Stack Developer
-            </span>
-            <span
-              style={{
-                width: 60,
-                height: 1,
-                background: "linear-gradient(90deg,#63ffaa,transparent)",
-              }}
-            />
-            <span
-              className="font-mono"
-              style={{ color: "#555", fontSize: 11, letterSpacing: "0.1em" }}
-            >
-              MERN Stack
-            </span>
-          </div>
-
-          <p
-            style={{
-              maxWidth: 500,
-              color: "#999",
-              fontSize: 15,
-              lineHeight: 1.75,
-              marginBottom: 40,
-              fontWeight: 300,
-            }}
-          >
-            Passionate developer pursuing{" "}
-            <span style={{ color: "#63ffaa", fontWeight: 500 }}>
-              BCA at VNSGU
-            </span>
-            , certified in the full MERN Stack. Eager to build real-world web
-            applications and grow as a developer.
+          <p className="hero-title">// Full Stack Developer (MERN)</p>
+          <p className="hero-desc">
+            A passionate developer pursuing <em>BCA at VNSGU</em>, certified in the
+            full MERN Stack. Eager to build real-world web applications and grow
+            into a well-rounded engineer.
           </p>
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <button
-              onClick={() => scrollTo("projects")}
-              className="font-mono"
-              style={{
-                background: "#63ffaa",
-                color: "#060612",
-                padding: "14px 32px",
-                borderRadius: 10,
-                border: "none",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-                transition: "all .2s",
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.transform = "translateY(-3px)")
-              }
-              onMouseLeave={(e) => (e.target.style.transform = "")}
-            >
-              View Projects →
-            </button>
-            <button
-              onClick={() => scrollTo("contact")}
-              className="font-mono"
-              style={{
-                background: "transparent",
-                color: "#e2e2f0",
-                padding: "14px 32px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.12)",
-                fontSize: 12,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-                transition: "all .2s",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.borderColor = "#63ffaa";
-                e.target.style.color = "#63ffaa";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.borderColor = "rgba(255,255,255,0.12)";
-                e.target.style.color = "#e2e2f0";
-              }}
-            >
-              Get In Touch
-            </button>
+          <div className="hero-btns">
+            <button className="btn-primary" onClick={() => scrollTo("projects")}>View Projects</button>
+            <button className="btn-outline" onClick={() => scrollTo("contact")}>Get In Touch</button>
           </div>
         </div>
-        <MarqueeBanner />
       </section>
 
-      {/* ── MARQUEE ── */}
-
-      {/* ── SKILLS ── */}
-      <section
-        id="skills"
-        style={{ padding: "100px 40px", maxWidth: 1100, margin: "0 auto" }}
-      >
-        <Reveal>
-          <p
-            className="font-mono"
-            style={{
-              color: "#63ffaa",
-              fontSize: 11,
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              marginBottom: 12,
-            }}
-          >
-            02 — Arsenal
-          </p>
-          <h2
-            className="font-display accent-line"
-            style={{
-              fontSize: "clamp(3rem,7vw,5.5rem)",
-              marginBottom: 64,
-              display: "inline-block",
-            }}
-          >
-            SKILLS
-          </h2>
-        </Reveal>
-
-        <Reveal delay={80}>
-          <p
-            className="font-mono"
-            style={{
-              fontSize: 10,
-              color: "#444",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              marginBottom: 20,
-            }}
-          >
-            Technical Stack
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))",
-              gap: 14,
-              marginBottom: 48,
-            }}
-          >
-            {skills.map((sk, i) => (
-              <Reveal key={sk.name} delay={i * 55}>
-                <div
-                  className="skill-chip"
-                  style={{
-                    background: "#0f0f1e",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    borderRadius: 14,
-                    padding: "20px 16px",
-                    textAlign: "center",
-                    cursor: "default",
-                  }}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 10 }}>
-                    {sk.icon}
-                  </div>
-                  <div
-                    className="font-mono"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: sk.color,
-                      letterSpacing: "0.06em",
-                    }}
-                  >
+      {/* SKILLS */}
+      <section id="skills">
+        <div className="section">
+          <FadeIn>
+            <p className="section-label">// 02. Arsenal</p>
+            <h2 className="section-title"><span className="section-line">Skills</span></h2>
+          </FadeIn>
+          <FadeIn delay={100}>
+            <p style={{ color: "var(--muted)", marginBottom: 32, fontSize: "0.95rem" }}>Technical Stack</p>
+            <div className="skills-grid">
+              {skills.map((sk, i) => (
+                <FadeIn key={sk.name} delay={i * 60}>
+                  <div className="skill-chip">
+                    <span className="skill-icon">{sk.icon}</span>
                     {sk.name}
                   </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </Reveal>
-
-        <Reveal delay={180}>
-          <p
-            className="font-mono"
-            style={{
-              fontSize: 10,
-              color: "#444",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              marginBottom: 16,
-            }}
-          >
-            Soft Skills
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {softSkills.map((s) => (
-              <span
-                key={s}
-                className="font-mono"
-                style={{
-                  fontSize: 11,
-                  padding: "9px 18px",
-                  borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.09)",
-                  background: "#0f0f1e",
-                  color: "#aaa",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ── PROJECTS ── */}
-      <section
-        id="projects"
-        style={{ background: "#0a0a18", padding: "100px 0" }}
-      >
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 40px" }}>
-          <Reveal>
-            <p
-              className="font-mono"
-              style={{
-                color: "#63ffaa",
-                fontSize: 11,
-                letterSpacing: "0.25em",
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              03 — Work
-            </p>
-            <h2
-              className="font-display accent-line"
-              style={{
-                fontSize: "clamp(3rem,7vw,5.5rem)",
-                marginBottom: 64,
-                display: "inline-block",
-              }}
-            >
-              PROJECTS
-            </h2>
-          </Reveal>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-              gap: 24,
-            }}
-          >
-            {projects.map((p, i) => (
-              <Reveal key={p.num} delay={i * 130}>
-                <div
-                  className="card-lift"
-                  style={{
-                    background: "#0f0f1e",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    borderRadius: 20,
-                    padding: "36px 32px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 2,
-                      background: "linear-gradient(90deg,#63ffaa,#7b5ea7)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 20,
-                    }}
-                  >
-                    <span
-                      className="font-mono"
-                      style={{
-                        fontSize: 11,
-                        color: "#63ffaa",
-                        letterSpacing: "0.2em",
-                      }}
-                    >
-                      {p.num}
-                    </span>
-                    <span style={{ fontSize: 32 }}>{p.emoji}</span>
-                  </div>
-                  <h3
-                    className="font-display"
-                    style={{
-                      fontSize: 40,
-                      color: "#e2e2f0",
-                      marginBottom: 14,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {p.name}
-                  </h3>
-                  <p
-                    style={{
-                      color: "#777",
-                      fontSize: 14,
-                      lineHeight: 1.7,
-                      marginBottom: 24,
-                      fontWeight: 300,
-                    }}
-                  >
-                    {p.desc}
-                  </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {p.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="font-mono"
-                        style={{
-                          fontSize: 10,
-                          padding: "4px 12px",
-                          borderRadius: 999,
-                          background: "rgba(99,255,170,0.07)",
-                          border: "1px solid rgba(99,255,170,0.2)",
-                          color: "#63ffaa",
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── EDUCATION ── */}
-      <section
-        id="education"
-        style={{ padding: "100px 40px", maxWidth: 1100, margin: "0 auto" }}
-      >
-        <Reveal>
-          <p
-            className="font-mono"
-            style={{
-              color: "#63ffaa",
-              fontSize: 11,
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              marginBottom: 12,
-            }}
-          >
-            04 — Background
-          </p>
-          <h2
-            className="font-display accent-line"
-            style={{
-              fontSize: "clamp(3rem,7vw,5.5rem)",
-              marginBottom: 64,
-              display: "inline-block",
-            }}
-          >
-            EDUCATION
-          </h2>
-        </Reveal>
-
-        <div style={{ position: "relative" }}>
-          <div
-            style={{
-              position: "absolute",
-              left: 20,
-              top: 0,
-              bottom: 0,
-              width: 1,
-              background: "rgba(255,255,255,0.06)",
-            }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            {education.map((e, i) => (
-              <Reveal key={i} delay={i * 140}>
-                <div
-                  style={{ display: "flex", gap: 28, alignItems: "flex-start" }}
-                >
-                  <div
-                    style={{
-                      flexShrink: 0,
-                      width: 42,
-                      height: 42,
-                      borderRadius: "50%",
-                      background: "#0f0f1e",
-                      border: "2px solid #63ffaa",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 18,
-                      zIndex: 1,
-                      position: "relative",
-                    }}
-                  >
-                    {e.icon}
-                  </div>
-                  <div
-                    className="card-lift"
-                    style={{
-                      flex: 1,
-                      background: "#0f0f1e",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                      borderRadius: 18,
-                      padding: "28px 32px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 12,
-                        marginBottom: 10,
-                      }}
-                    >
-                      <span
-                        className="font-display"
-                        style={{
-                          fontSize: 48,
-                          color: "#63ffaa",
-                          lineHeight: 1,
-                        }}
-                      >
-                        {e.abbr}
-                      </span>
-                      <span
-                        className="font-mono"
-                        style={{
-                          fontSize: 10,
-                          padding: "5px 12px",
-                          borderRadius: 999,
-                          background: "rgba(99,255,170,0.07)",
-                          border: "1px solid rgba(99,255,170,0.2)",
-                          color: "#63ffaa",
-                        }}
-                      >
-                        {e.year}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 15,
-                        color: "#e2e2f0",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {e.degree}
-                    </div>
-                    <div
-                      className="font-mono"
-                      style={{
-                        fontSize: 11,
-                        color: "#555",
-                        marginBottom: 14,
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      {e.school}
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: "#888",
-                        lineHeight: 1.65,
-                        fontWeight: 300,
-                      }}
-                    >
-                      {e.desc}
-                    </p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-
-      </section>
-
-      {/* ── CONTACT ── */}
-      <section
-        id="contact"
-        style={{ background: "#0a0a18", padding: "100px 40px" }}
-      >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <Reveal>
-            <p
-              className="font-mono"
-              style={{
-                color: "#63ffaa",
-                fontSize: 11,
-                letterSpacing: "0.25em",
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              05 — Connect
-            </p>
-            <h2
-              className="font-display accent-line"
-              style={{
-                fontSize: "clamp(3rem,7vw,5.5rem)",
-                marginBottom: 64,
-                display: "inline-block",
-              }}
-            >
-              CONTACT
-            </h2>
-          </Reveal>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-              gap: 24,
-              alignItems: "start",
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {contacts.map((c, i) => (
-                <Reveal key={c.label} delay={i * 80}>
-                  <div
-                    className="card-lift"
-                    style={{
-                      background: "#0f0f1e",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                      borderRadius: 14,
-                      padding: "18px 20px",
-                      display: "flex",
-                      gap: 16,
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        background: "rgba(99,255,170,0.07)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 20,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {c.icon}
-                    </div>
-                    <div>
-                      <div
-                        className="font-mono"
-                        style={{
-                          fontSize: 9,
-                          color: "#63ffaa",
-                          letterSpacing: "0.2em",
-                          textTransform: "uppercase",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {c.label}
-                      </div>
-                      <div style={{ fontSize: 13, color: "#ccc" }}>{c.val}</div>
-                    </div>
-                  </div>
-                </Reveal>
+                </FadeIn>
               ))}
             </div>
+          </FadeIn>
+          <FadeIn delay={200}>
+            <p style={{ color: "var(--muted)", margin: "40px 0 20px", fontSize: "0.95rem" }}>Soft Skills</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {softSkills.map(s => (
+                <div key={s} style={{
+                  padding: "10px 18px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 100,
+                  fontFamily: "'Space Mono',monospace",
+                  fontSize: "0.78rem",
+                  color: "var(--muted)",
+                  background: "var(--card)",
+                }}>{s}</div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
 
-            <Reveal delay={220}>
-              <div
-                style={{
-                  background: "#0f0f1e",
-                  border: "1px solid rgba(99,255,170,0.15)",
-                  borderRadius: 22,
-                  padding: "44px 40px",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: 200,
-                    height: 200,
-                    borderRadius: "50%",
-                    background:
-                      "radial-gradient(circle,rgba(99,255,170,0.08),transparent)",
-                    transform: "translate(30%,-30%)",
-                    pointerEvents: "none",
-                  }}
-                />
-                <div style={{ position: "relative" }}>
-                  <h3
-                    className="font-display"
-                    style={{ fontSize: 52, lineHeight: 1.1, marginBottom: 16 }}
-                  >
-                    Let's Build
-                    <br />
-                    <span style={{ color: "#63ffaa" }}>Together.</span>
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: "#888",
-                      lineHeight: 1.7,
-                      marginBottom: 32,
-                      fontWeight: 300,
-                    }}
-                  >
-                    I'm actively looking for internship & junior developer
-                    opportunities. Have a project or idea? Let's make it happen.
-                  </p>
-                  <a
-                    href="mailto:mitgadhiya16@gmail.com"
-                    style={{ display: "block" }}
-                  >
-                    <button
-                      className="font-mono"
-                      style={{
-                        width: "100%",
-                        background: "#63ffaa",
-                        color: "#060612",
-                        border: "none",
-                        borderRadius: 12,
-                        padding: "16px",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                        cursor: "pointer",
-                        transition: "opacity .2s",
-                      }}
-                      onMouseEnter={(e) => (e.target.style.opacity = ".88")}
-                      onMouseLeave={(e) => (e.target.style.opacity = "1")}
-                    >
-                      Send Me a Message →
-                    </button>
-                  </a>
+      {/* PROJECTS */}
+      <section id="projects" style={{ background: "var(--surface)" }}>
+        <div className="section">
+          <FadeIn>
+            <p className="section-label">// 03. Work</p>
+            <h2 className="section-title"><span className="section-line">Projects</span></h2>
+          </FadeIn>
+          <div className="projects-grid">
+            {projects.map((p, i) => (
+              <FadeIn key={p.num} delay={i * 120}>
+                <div className="project-card">
+                  <div className="project-num">{p.num}</div>
+                  <h3 className="project-name">{p.name}</h3>
+                  <p className="project-desc">{p.desc}</p>
+                  <div className="project-tags">
+                    {p.tags.map(t => <span key={t} className="tag">{t}</span>)}
+                  </div>
                 </div>
-              </div>
-            </Reveal>
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          padding: "28px 40px",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <span className="font-mono" style={{ fontSize: 11, color: "#444" }}>
-          © 2025 <span style={{ color: "#63ffaa" }}>Meet Gadhiya</span>
-        </span>
-        <span className="font-mono" style={{ fontSize: 11, color: "#444" }}>
-          Built with <span style={{ color: "#63ffaa" }}>React</span> + Tailwind
-          CSS
-        </span>
+      {/* EDUCATION */}
+      <section id="education">
+        <div className="section">
+          <FadeIn>
+            <p className="section-label">// 04. Background</p>
+            <h2 className="section-title"><span className="section-line">Education</span></h2>
+          </FadeIn>
+          <div className="edu-timeline">
+            {education.map((e, i) => (
+              <FadeIn key={i} delay={i * 150}>
+                <div className="edu-item">
+                  <div className="edu-dot">{e.icon}</div>
+                  <div className="edu-body">
+                    <div className="edu-year">{e.year}</div>
+                    <div className="edu-degree">{e.degree}</div>
+                    <div className="edu-school">{e.school}</div>
+                    <div className="edu-desc">{e.desc}</div>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+
+          {/* Languages */}
+          <FadeIn delay={100}>
+            <p style={{ color: "var(--muted)", margin: "60px 0 20px", fontSize: "0.95rem", fontFamily: "'Space Mono',monospace", letterSpacing: "0.1em", fontSize: "0.75rem", color: "var(--accent)" }}>// LANGUAGES</p>
+            <div className="lang-grid">
+              {languages.map((l, i) => (
+                <FadeIn key={l.name} delay={i * 80}>
+                  <div className="lang-card">
+                    <div className="lang-name">{l.name}</div>
+                    <div className="lang-level">{l.level}</div>
+                    <div className="lang-bar"><div className="lang-fill" style={{ width: l.fill }} /></div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" style={{ background: "var(--surface)" }}>
+        <div className="section">
+          <FadeIn>
+            <p className="section-label">// 05. Connect</p>
+            <h2 className="section-title"><span className="section-line">Contact</span></h2>
+          </FadeIn>
+          <div className="contact-grid">
+            <div className="contact-info">
+              {[
+                { icon: "📞", label: "PHONE", val: "+91 8488884002" },
+                { icon: "✉️", label: "EMAIL", val: "mitgadhiya16@gmail.com" },
+                { icon: "📍", label: "LOCATION", val: "Pasodra, Surat, Gujarat" },
+                { icon: "🌐", label: "WEBSITE", val: "reallygreatsite.com" },
+              ].map((c, i) => (
+                <FadeIn key={c.label} delay={i * 80}>
+                  <div className="contact-item">
+                    <span className="contact-icon">{c.icon}</span>
+                    <div>
+                      <div className="contact-label">{c.label}</div>
+                      <div className="contact-val">{c.val}</div>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+            <FadeIn delay={200}>
+              <div className="contact-cta">
+                <h3>Let's Build Something Together</h3>
+                <p>I'm actively looking for internship and junior developer opportunities. If you have a project in mind or just want to connect — let's talk!</p>
+                <a href="mailto:mitgadhiya16@gmail.com">
+                  <button className="btn-primary" style={{ width: "100%" }}>Send Me a Message</button>
+                </a>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="footer">
+        <span>© 2025 <span className="footer-accent">Meet Gadhiya</span></span>
+        <span>Built with <span className="footer-accent">React</span> · MERN Stack Developer</span>
       </footer>
     </div>
   );
