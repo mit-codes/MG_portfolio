@@ -206,7 +206,7 @@ const contacts = [
   { icon: "📞", label: "Phone", val: "+91 8488884002" },
   { icon: "✉️", label: "Email", val: "mitgadhiya16@gmail.com" },
   { icon: "📍", label: "Location", val: "Pasodra, Surat, Gujarat" },
-  { icon: "🌐", label: "Website", val: "reallygreatsite.com" },
+  { icon: "🌐", label: "Website", val: "meetgadhiya.netlify.app" },
 ];
 
 /* ─── MARQUEE TICKER ─── */
@@ -349,7 +349,7 @@ export default function Portfolio() {
         id="about"
         className="grid-bg"
         style={{
-          minHeight: "90vh",
+          minHeight: "80vh",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -967,88 +967,6 @@ export default function Portfolio() {
           </div>
         </div>
 
-        {/* Languages */}
-        <div ref={barRef} style={{ marginTop: 72 }}>
-          <Reveal>
-            <p
-              className="font-mono"
-              style={{
-                color: "#63ffaa",
-                fontSize: 11,
-                letterSpacing: "0.25em",
-                textTransform: "uppercase",
-                marginBottom: 28,
-              }}
-            >
-              // Languages
-            </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))",
-                gap: 18,
-              }}
-            >
-              {languages.map((l, i) => (
-                <Reveal key={l.name} delay={i * 80}>
-                  <div
-                    className="card-lift"
-                    style={{
-                      background: "#0f0f1e",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                      borderRadius: 16,
-                      padding: "24px 22px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "baseline",
-                        marginBottom: 16,
-                      }}
-                    >
-                      <span
-                        className="font-display"
-                        style={{ fontSize: 32, color: "#e2e2f0" }}
-                      >
-                        {l.name}
-                      </span>
-                      <span
-                        className="font-mono"
-                        style={{
-                          fontSize: 10,
-                          color: "#63ffaa",
-                          letterSpacing: "0.1em",
-                        }}
-                      >
-                        {l.level}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        height: 3,
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        background: "rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      <div
-                        className="bar-fill"
-                        style={{
-                          width: barVisible ? `${l.pct}%` : "0%",
-                          height: "100%",
-                          borderRadius: 2,
-                          background: "linear-gradient(90deg,#63ffaa,#7b5ea7)",
-                        }}
-                      />
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </Reveal>
-        </div>
       </section>
 
       {/* ── CONTACT ── */}
